@@ -1,5 +1,8 @@
 import numpy as np
 
+def distance(a, b):
+    return np.sqrt(((b - a)**2).sum())
+
 class Transformation:
     
     def __init__(self, matrix=None):
@@ -13,7 +16,7 @@ class Transformation:
         m = np.eye(3, dtype='float')
         m[0, 2] = xy[0]
         m[1, 2] = xy[1]
-        return self.combine(m)
+        return self.combine(Transformation(m))
     
     def scale(self, xy):
         xy = np.asarray(xy)
@@ -28,7 +31,7 @@ class Transformation:
             m[1, 1] = xy[1]
         else:
             raise ValueError('xy has to be either a scalar or a 2D array')
-        return self.combine(m)
+        return self.combine(Transformation(m))
 
     def rotate(self, theta):
         raise NotImplementedError()
@@ -36,9 +39,12 @@ class Transformation:
     def skew(self, arg):
         raise NotImplementedError()
 
-    def combine(self, matrix):
-        matrix = np.asarray(matrix, dtype='float')
-        self.matrix = matrix.dot(self.matrix)
+    def invert(self):
+        self.matrix = np.linalg.inv(self.matrix)
+        return self
+
+    def combine(self, other):
+        self.matrix = other.matrix.dot(self.matrix)
         return self
 
     def apply(self, coords):
@@ -74,3 +80,6 @@ class Box(object):
     @property
     def height(self):
         return (self.end - self.start)[1]
+
+    def __repr__(self):
+        return "<Box {},{}>".format(self.start, self.end)
